@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Payment;
 use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
     public function sales()
     {
-        // Example: return total sales
-        return \App\Models\Payment::sum('final_amount');
+        $sales = Payment::selectRaw('DATE(created_at) as date, SUM(final_amount) as total')
+            ->groupBy('date')
+            ->get();
+        return response()->json($sales);
     }
 }

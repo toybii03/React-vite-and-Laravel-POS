@@ -3,10 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
-
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,20 +13,40 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create roles if they don't already exist
+        $cashierRole = Role::firstOrCreate(['name' => 'cashier']);
+        $managerRole = Role::firstOrCreate(['name' => 'manager']);
+        $adminRole = Role::firstOrCreate(['name' => 'administrator']);
 
-        User::factory()->create([
-            'name' => 'John Benjie',
+        // Create a manager user
+        $manager = User::firstOrCreate([
             'email' => 'johnbenjie008@gmail.com',
+        ], [
+            'name' => 'John Benjie',
+            'password' => bcrypt('Toybii2003'), // Ensure the password is hashed
         ]);
 
-        // Create roles
-        Role::create(['name' => 'cashier']);
-        Role::create(['name' => 'manager']);
-        Role::create(['name' => 'administrator']);
+        // Assign the manager role to the user
+        $manager->assignRole($managerRole);
 
-        // Assign role to user
-        $user = User::find(1);
-        $user->assignRole('manager');
+        // Optionally, create additional users for other roles
+        $cashier = User::firstOrCreate([
+            'email' => 'cashier@example.com',
+        ], [
+            'name' => 'Cashier User',
+            'password' => bcrypt('cashierpassword'),
+        ]);
+        $cashier->assignRole($cashierRole);
+
+        $admin = User::firstOrCreate([
+            'email' => 'admin@example.com',
+        ], [
+            'name' => 'Admin User',
+            'password' => bcrypt('adminpassword'),
+        ]);
+        $admin->assignRole($adminRole);
+
+        // Output a message to confirm seeding
+        $this->command->info('Users and roles seeded successfully.');
     }
 }

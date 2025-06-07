@@ -11,19 +11,41 @@ class ProductController extends Controller
     {
         return Product::all();
     }
+
     public function store(Request $request)
     {
-        return Product::create($request->all());
+        $data = $request->all();
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $image->move(public_path('images'), $imageName);
+            $data['image'] = 'images/' . $imageName;
+        }
+
+        return Product::create($data);
     }
+
     public function show(Product $product)
     {
         return $product;
     }
+
     public function update(Request $request, Product $product)
     {
-        $product->update($request->all());
+        $data = $request->all();
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $image->move(public_path('images'), $imageName);
+            $data['image'] = 'images/' . $imageName;
+        }
+
+        $product->update($data);
         return $product;
     }
+
     public function destroy(Product $product)
     {
         $product->delete();
