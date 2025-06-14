@@ -35,4 +35,12 @@ class AuthenticatedSessionController extends Controller
 
         return response()->noContent();
     }
+
+    public function context(Request $request)
+    {
+        return response()->json([
+            'user' => $request->user(),
+            'roles' => $request->user()->getRoleNames(),
+        ]);
+    }
 }

@@ -29,24 +29,27 @@ class DatabaseSeeder extends Seeder
         // Assign the manager role to the user
         $manager->assignRole($managerRole);
 
-        // Optionally, create additional users for other roles
-        $cashier = User::firstOrCreate([
-            'email' => 'cashier@example.com',
-        ], [
-            'name' => 'Cashier User',
-            'password' => bcrypt('cashierpassword'),
-        ]);
-        $cashier->assignRole($cashierRole);
-
+        // Create admin user with same password pattern
         $admin = User::firstOrCreate([
-            'email' => 'admin@example.com',
+            'email' => 'admin@pos.com',
         ], [
             'name' => 'Admin User',
-            'password' => bcrypt('adminpassword'),
+            'password' => bcrypt('Admin2024'), // Using a consistent pattern
         ]);
         $admin->assignRole($adminRole);
 
+        // Create cashier user with same password pattern
+        $cashier = User::firstOrCreate([
+            'email' => 'cashier@pos.com',
+        ], [
+            'name' => 'Cashier User',
+            'password' => bcrypt('Cashier2024'), // Using a consistent pattern
+        ]);
+        $cashier->assignRole($cashierRole);
+
         // Output a message to confirm seeding
         $this->command->info('Users and roles seeded successfully.');
+        $this->command->info('Admin login: admin@pos.com / Admin2024');
+        $this->command->info('Cashier login: cashier@pos.com / Cashier2024');
     }
 }

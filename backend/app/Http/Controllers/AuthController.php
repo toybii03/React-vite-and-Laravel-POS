@@ -39,35 +39,53 @@ class AuthController extends Controller
     // User login
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
-            'recaptcha_token' => ['required', 'string'], // Add captchaValue validation
-        ]);
+        try {
+            $credentials = $request->validate([
+                'email' => ['required', 'email'],
+                'password' => ['required', 'string'],
+                'recaptcha_token' => ['required', 'string'],
+            ]);
 
-        // CAPTCHA verification
-        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-            'secret' => env('RECAPTCHA_SECRET_KEY'), // Use env variable for secret
-            'response' => $request->input('recaptcha_token'),
-        ]);
+            // CAPTCHA verification
+            $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => env('RECAPTCHA_SECRET_KEY'),
+                'response' => $credentials['recaptcha_token'],
+            ]);
 
-        Log::info('reCAPTCHA response', $response->json());
+            Log::info('reCAPTCHA response', $response->json());
 
-        if (!$response->json('success')) {
-            return response()->json(['message' => 'CAPTCHA verification failed'], 400);
-        }
+            if (!$response->json('success')) {
+                return response()->json(['message' => 'CAPTCHA verification failed'], 400);
+            }
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+            // Remove recaptcha_token from credentials before attempting auth
+            unset($credentials['recaptcha_token']);
+
+            if (Auth::attempt($credentials)) {
+                $user = Auth::user();
+                $token = $user->createToken('auth-token')->plainTextToken;
+
+                // Get the user's first role
+                $role = $user->getRoleNames()->first();
+
+                // Include the role in the user object
+                $userData = $user->toArray();
+                $userData['role'] = $role;
+
+                return response()->json([
+                    'token' => $token,
+                    'user' => $userData,
+                    'message' => 'Login successful'
+                ]);
+            }
+
             return response()->json(['message' => 'Invalid credentials'], 401);
+
+        } catch (\Exception $e) {
+            Log::error('Login error: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            return response()->json(['message' => 'An error occurred during login: ' . $e->getMessage()], 500);
         }
-
-        $user = Auth::user();
-        $token = $user->createToken('api-token')->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'user' => $user,
-        ]);
     }
 
     // User logout

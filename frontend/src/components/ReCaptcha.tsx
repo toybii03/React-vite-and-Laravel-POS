@@ -21,7 +21,7 @@ const ReCaptcha: React.FC = () => {
     <form onSubmit={handleSubmit}>
       <input type="text" placeholder="John Benjie" required />
       <ReCAPTCHA
-        sitekey="6Lees1YrAAAAAIWO1Al1HjT7-d3-Rgvw6pX_-gfF"
+        sitekey="6LdpDFwrAAAAAFGHJHgwn3ksCTGh-koeC2uYFZlG"
         onChange={(value) => setCaptchaValue(value)}
         ref={recaptchaRef}
       />

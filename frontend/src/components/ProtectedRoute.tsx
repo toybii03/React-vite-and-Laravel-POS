@@ -1,25 +1,34 @@
-import type { JSX } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 interface ProtectedRouteProps {
-  children: JSX.Element;
+  children: React.ReactNode;
   allowedRoles?: string[];
 }
 
-export default function ProtectedRoute({
-  children,
-  allowedRoles,
-}: ProtectedRouteProps) {
-  const token = localStorage.getItem("auth_token");
-  const userRole = localStorage.getItem("user_role");
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
+  const { isAuthenticated, user } = useAuth();
+  const location = useLocation();
 
-  if (!token) {
-    return <Navigate to="/" />;
+  if (!isAuthenticated) {
+    // Redirect to login page with the return url
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(userRole || "")) {
-    return <Navigate to="/dashboard" />;
+  if (allowedRoles && (!user?.role || !allowedRoles.includes(user.role))) {
+    return (
+      <div className="container py-5">
+        <div className="alert alert-danger" role="alert">
+          <h4 className="alert-heading">Access Denied</h4>
+          <p>You don't have permission to access this page. This page is only accessible to {allowedRoles.join(', ')} users.</p>
+          <hr />
+          <p className="mb-0">Please contact your administrator if you believe this is an error.</p>
+        </div>
+      </div>
+    );
   }
 
-  return children;
-}
+  return <>{children}</>;
+};
+
+export default ProtectedRoute;

@@ -37,6 +37,23 @@ class User extends Authenticatable
     ];
 
     /**
+     * The attributes that should be appended to the model's array form.
+     *
+     * @var array<string>
+     */
+    protected $appends = ['role'];
+
+    /**
+     * Get the user's role.
+     *
+     * @return string|null
+     */
+    public function getRoleAttribute()
+    {
+        return $this->getRoleNames()->first();
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

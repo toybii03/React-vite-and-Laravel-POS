@@ -1,80 +1,89 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "../lib/axios";
 
 interface SurveyProps {
-  paymentId: number;
+  paymentId?: string;
 }
 
 export default function Survey({ paymentId }: SurveyProps) {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const res = await fetch("http://localhost:8000/api/surveys", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ payment_id: paymentId, rating, comment }),
-    });
-
-    if (res.ok) {
-      setMessage("✅ Thank you for your feedback!");
-      setComment("");
-      setRating(5);
-    } else {
-      setMessage("❌ Submission failed. Please try again.");
+    try {
+      await axios.post("/api/survey", {
+        payment_id: paymentId,
+        rating,
+        comment,
+      });
+      setMessage("Thank you for your feedback!");
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
+    } catch (error) {
+      setMessage("Failed to submit feedback. Please try again.");
     }
   };
 
   return (
-    <div
-      className="container my-4 p-4 border rounded shadow-sm"
-      style={{ maxWidth: 500 }}
-    >
-      <h5 className="mb-3">Customer Feedback</h5>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label className="form-label">Rate your experience:</label>
-          <select
-            className="form-select"
-            value={rating}
-            onChange={(e) => setRating(Number(e.target.value))}
-          >
-            {[1, 2, 3, 4, 5].map((n) => (
-              <option key={n} value={n}>
-                {n} -{" "}
-                {["Poor", "Fair", "Good", "Very Good", "Excellent"][n - 1]}
-              </option>
-            ))}
-          </select>
-        </div>
+    <div className="vh-100 d-flex align-items-center justify-content-center bg-light" style={{ marginTop: '-56px', paddingTop: '56px' }}>
+      <div className="container p-4">
+        <div className="row justify-content-center">
+          <div className="col-12 col-md-8 col-lg-6">
+            <div className="card shadow">
+              <div className="card-body">
+                <h3 className="card-title text-center mb-4">Customer Feedback</h3>
+                <form onSubmit={handleSubmit}>
+                  <div className="mb-4">
+                    <label className="form-label">Rate your experience:</label>
+                    <select
+                      className="form-select form-select-lg"
+                      value={rating}
+                      onChange={(e) => setRating(Number(e.target.value))}
+                    >
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <option key={n} value={n}>
+                          {n} - {["Poor", "Fair", "Good", "Very Good", "Excellent"][n - 1]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-        <div className="mb-3">
-          <label className="form-label">Comments (optional):</label>
-          <textarea
-            className="form-control"
-            rows={3}
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Tell us more about your experience..."
-          />
-        </div>
+                  <div className="mb-4">
+                    <label className="form-label">Comments (optional):</label>
+                    <textarea
+                      className="form-control form-control-lg"
+                      rows={5}
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      placeholder="Tell us more about your experience..."
+                    />
+                  </div>
 
-        <button type="submit" className="btn btn-primary w-100">
-          Submit Feedback
-        </button>
+                  <button type="submit" className="btn btn-primary btn-lg w-100">
+                    Submit Feedback
+                  </button>
 
-        {message && (
-          <div
-            className="alert mt-3"
-            role="alert"
-            style={{ color: message.includes("Thank") ? "green" : "red" }}
-          >
-            {message}
+                  {message && (
+                    <div
+                      className={`alert mt-3 text-center ${
+                        message.includes("Thank") ? "alert-success" : "alert-danger"
+                      }`}
+                      role="alert"
+                    >
+                      {message}
+                    </div>
+                  )}
+                </form>
+              </div>
+            </div>
           </div>
-        )}
-      </form>
+        </div>
+      </div>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import {
   Route,
   Link,
   useNavigate,
+  Navigate,
 } from "react-router-dom";
 import Login from "./pages/Login";
 import Products from "./pages/Products";
@@ -18,6 +19,11 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 import UserManagement from "./pages/UserManagement";
 import FarewellMessages from "./pages/FarewellMessages";
+import Navigation from './components/Navigation';
+import { routes } from './config/routes';
+import './styles/main.css';
+import { useEffect } from 'react';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 function AppRoutes() {
   const { logout, user } = useAuth();
@@ -30,165 +36,111 @@ function AppRoutes() {
   };
 
   return (
-    <>
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-        <div className="container-fluid px-4 position-relative">
-          <Link className="navbar-brand" to="/">
-            POS System
-          </Link>
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarNav"
-            aria-controls="navbarNav"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-
-          <div
-            className="collapse navbar-collapse justify-content-center"
-            id="navbarNav"
-          >
-            {/* Centered nav links */}
-            <ul className="navbar-nav align-items-center">
-              <li className="nav-item">
-                <Link className="nav-link" to="/products">
-                  Products
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/transactions">
-                  Transactions
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/dashboard">
-                  Dashboard
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/feedback">
-                  Feedback
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/reports">
-                  Reports
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/survey">
-                  Survey
-                </Link>
-              </li>
-              {user?.role === "admin" && (
-                <>
-                  <li className="nav-item">
-                    <Link className="nav-link" to="/users">
-                      User Management
-                    </Link>
-                  </li>
-                  <li className="nav-item">
-                    <Link className="nav-link" to="/farewell-messages">
-                      Farewell Messages
-                    </Link>
-                  </li>
-                </>
-              )}
-            </ul>
-          </div>
-
-          {/* Logout button aligned top right */}
-          <div className="position-absolute end-0 me-3">
-            <button className="btn btn-sm btn-light" onClick={handleLogout}>
-              Logout
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <div className="container mt-4">
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route
-            path="/products"
-            element={
-              <ProtectedRoute>
-                <Products />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/transactions"
-            element={
-              <ProtectedRoute>
-                <Transactions />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/feedback"
-            element={
-              <ProtectedRoute>
-                <FeedbackAnalytics />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute>
-                <Reports />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/survey"
-            element={
-              <ProtectedRoute>
-                <Survey />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/users"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <UserManagement setLoading={() => {}} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/farewell-messages"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <FarewellMessages setLoading={() => {}} />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </div>
-    </>
+    <div>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        
+        <Route
+          path={routes.products.path}
+          element={
+            <ProtectedRoute allowedRoles={routes.products.allowedRoles}>
+              <Products />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path={routes.transactions.path}
+          element={
+            <ProtectedRoute allowedRoles={routes.transactions.allowedRoles}>
+              <Transactions />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path={routes.dashboard.path}
+          element={
+            <ProtectedRoute allowedRoles={routes.dashboard.allowedRoles}>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path={routes.feedback.path}
+          element={
+            <ProtectedRoute allowedRoles={routes.feedback.allowedRoles}>
+              <FeedbackAnalytics />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path={routes.reports.path}
+          element={
+            <ProtectedRoute allowedRoles={routes.reports.allowedRoles}>
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path={routes.survey.path}
+          element={
+            <ProtectedRoute allowedRoles={routes.survey.allowedRoles}>
+              <Survey />
+            </ProtectedRoute>
+          }
+        />
+        {user?.role === "administrator" && (
+          <>
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute allowedRoles={["administrator"]}>
+                  <UserManagement setLoading={() => {}} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/farewell-messages"
+              element={
+                <ProtectedRoute allowedRoles={["administrator"]}>
+                  <FarewellMessages setLoading={() => {}} />
+                </ProtectedRoute>
+              }
+            />
+          </>
+        )}
+      </Routes>
+    </div>
   );
 }
 
-export default function App() {
+function App() {
+  useEffect(() => {
+    // Initialize Bootstrap tooltips and popovers
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    [...tooltipTriggerList].map(tooltipTriggerEl => new window.bootstrap.Tooltip(tooltipTriggerEl));
+
+    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+    [...popoverTriggerList].map(popoverTriggerEl => new window.bootstrap.Popover(popoverTriggerEl));
+  }, []);
+
   return (
-    <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <div className="min-vh-100 bg-light">
+          <Navigation />
+          <main>
+            <AppRoutes />
+          </main>
+        </div>
+      </AuthProvider>
+    </Router>
   );
 }
+
+export default App;

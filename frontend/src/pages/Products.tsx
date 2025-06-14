@@ -1,126 +1,70 @@
-import React, { useState, useEffect } from "react";
+import React from 'react';
+import { useAuth } from '../context/AuthContext';
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  stock: number;
-}
+const Products: React.FC = () => {
+  const { user } = useAuth();
 
-export default function Payment() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [productId, setProductId] = useState("");
-  const [amount, setAmount] = useState("");
-  const [discount, setDiscount] = useState("");
-  const [email, setEmail] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("cash");
-  const [message, setMessage] = useState("");
-
-  // Fetch products for selection
-  useEffect(() => {
-    fetch("http://localhost:8000/api/products")
-      .then((res) => res.json())
-      .then((data) => setProducts(data));
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage("");
-    const payload = {
-      product_id: productId,
-      amount,
-      discount: discount || 0,
-      email,
-      payment_method: paymentMethod,
-    };
-    const res = await fetch("http://localhost:8000/api/payments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setMessage("Payment successful! Receipt sent to email.");
-      setProductId("");
-      setAmount("");
-      setDiscount("");
-      setEmail("");
-      setPaymentMethod("cash");
-    } else {
-      setMessage(data.error || "Payment failed.");
-    }
-  };
+  // Sample product data
+  const products = [
+    { id: 1, name: 'Product 1', price: 19.99, stock: 50 },
+    { id: 2, name: 'Product 2', price: 29.99, stock: 30 },
+    { id: 3, name: 'Product 3', price: 39.99, stock: 20 },
+  ];
 
   return (
-    <div>
-      <h2>Payment</h2>
-      <form onSubmit={handleSubmit} style={{ maxWidth: 400 }}>
-        <div className="mb-3">
-          <label className="form-label">Product</label>
-          <select
-            className="form-select"
-            value={productId}
-            onChange={(e) => setProductId(e.target.value)}
-            required
-          >
-            <option value="">Select product</option>
-            {products.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} (₱{p.price})
-              </option>
-            ))}
-          </select>
+    <div className="container">
+      <div className="card mb-4">
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h1 className="card-title h3 mb-0">Products</h1>
+            {(user?.role === 'administrator' || user?.role === 'manager') && (
+              <button className="btn btn-primary">
+                Add New Product
+              </button>
+            )}
+          </div>
+
+          <div className="table-responsive">
+            <table className="table table-hover">
+              <thead className="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                  {(user?.role === 'administrator' || user?.role === 'manager') && (
+                    <th>Actions</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((product) => (
+                  <tr key={product.id}>
+                    <td>{product.id}</td>
+                    <td>{product.name}</td>
+                    <td>${product.price.toFixed(2)}</td>
+                    <td>
+                      <span className={`badge ${product.stock < 30 ? 'bg-warning' : 'bg-success'}`}>
+                        {product.stock}
+                      </span>
+                    </td>
+                    {(user?.role === 'administrator' || user?.role === 'manager') && (
+                      <td>
+                        <div className="btn-group btn-group-sm">
+                          <button className="btn btn-outline-primary">Edit</button>
+                          <button className="btn btn-outline-danger">Delete</button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div className="mb-3">
-          <label className="form-label">Amount</label>
-          <input
-            type="number"
-            className="form-control"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-            min={0}
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Discount</label>
-          <input
-            type="number"
-            className="form-control"
-            value={discount}
-            onChange={(e) => setDiscount(e.target.value)}
-            min={0}
-            placeholder="0"
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Customer Email</label>
-          <input
-            type="email"
-            className="form-control"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Payment Method</label>
-          <select
-            className="form-select"
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-            required
-          >
-            <option value="cash">Cash</option>
-            <option value="card">Card</option>
-            <option value="gcash">GCash</option>
-          </select>
-        </div>
-        <button type="submit" className="btn btn-primary">
-          Pay
-        </button>
-      </form>
-      {message && <div className="mt-3">{message}</div>}
+      </div>
     </div>
   );
-}
+};
+
+export default Products;
